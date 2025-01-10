@@ -11,7 +11,7 @@
   "dependencies": {
     "@monorepo/common": "workspace:*",
     "@monorepo/db": "workspace:*",
-    "@nostr-dev-kit/ndk": "^2.5.1",
+    "@nostr-dev-kit/ndk": "^2.11.0",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.1",
     "@tanstack/react-table": "^8.20.6",

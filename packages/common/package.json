@@ -12,7 +12,7 @@
     "typescript": "^5.4.2"
   },
   "dependencies": {
-    "@nostr-dev-kit/ndk": "^2.5.1",
-    "zod": "^3.22.4"
+    "@nostr-dev-kit/ndk": "^2.11.0",
+    "zod": "^3.24.1"
   }
 } 
