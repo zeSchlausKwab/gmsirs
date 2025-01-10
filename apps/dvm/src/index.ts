@@ -10,7 +10,7 @@ async function processRequest(event: NDKEvent): Promise<string> {
     // Parse the content as JSON and validate
     const content = JSON.parse(event.content)
     const result = DVMRequestSchema.safeParse(content)
-    
+
     if (!result.success) {
       throw new Error('Invalid request format')
     }
@@ -34,24 +34,21 @@ async function processRequest(event: NDKEvent): Promise<string> {
 }
 
 async function handleEvent(event: NDKEvent) {
-    // console.log('Handling event:', event)
   try {
     const output = await processRequest(event)
-    
-    // Create response event
+
     const responseEvent = new NDKEvent(dvmService.getNDK())
     responseEvent.kind = RESULT_KIND
     responseEvent.tags = [
-      ['e', event.id], // Reference to request event
-      ['p', event.pubkey] // Reference to requester
+      ['e', event.id],
+      ['p', event.pubkey],
     ]
     responseEvent.content = JSON.stringify({
       input: JSON.parse(event.content).input,
       output,
-      processedAt: Date.now()
+      processedAt: Date.now(),
     })
 
-    // Publish response
     await responseEvent.publish()
   } catch (error) {
     console.error('Error handling event:', error)
@@ -61,17 +58,19 @@ async function handleEvent(event: NDKEvent) {
 async function main() {
   try {
     await dvmService.connect()
-  
-    const filter: NDKFilter = { kinds: [JOB_KIND], since: Math.floor(Date.now() / 1000) }
-    const sub = dvmService.getNDK().subscribe(filter, { 
+
+    const filter: NDKFilter = {
+      kinds: [JOB_KIND],
+      since: Math.floor(Date.now() / 1000),
+    }
+    const sub = dvmService.getNDK().subscribe(filter, {
       closeOnEose: false,
     })
-  
+
     sub.on('event', (event: NDKEvent) => {
       handleEvent(event)
     })
-  
-  
+
     console.log('DVM listening for requests...')
   } catch (error) {
     console.error('Failed to start DVM:', error)
@@ -79,4 +78,4 @@ async function main() {
   }
 }
 
-main().catch(console.error) 
+main().catch(console.error)

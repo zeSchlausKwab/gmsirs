@@ -1,21 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { 
-  subscribeToFollowingList, 
-  type FollowingUpdate, 
-  PublicKeySchema
-} from '@monorepo/common'
+import { subscribeToFollowingList, type FollowingUpdate, PublicKeySchema } from '@monorepo/common'
 import { nostrService } from '@/services/ndk'
 import type { NDKUser } from '@nostr-dev-kit/ndk'
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { FollowingListRow } from './FollowingListRow'
 
 type ProfileWithStatus = {
@@ -40,15 +30,15 @@ export function FollowingList({ pubkey }: { pubkey: string }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchProfile = async (pubkey: string) => {
-    setProfiles(prev => new Map(prev).set(pubkey, { profile: null, loading: true }))
-    
+    setProfiles((prev) => new Map(prev).set(pubkey, { profile: null, loading: true }))
+
     try {
       const user = await nostrService.getNDK().getUser({ pubkey })
       await user.fetchProfile()
-      setProfiles(prev => new Map(prev).set(pubkey, { profile: user, loading: false }))
+      setProfiles((prev) => new Map(prev).set(pubkey, { profile: user, loading: false }))
     } catch (error) {
       console.error('Error fetching profile:', error)
-      setProfiles(prev => new Map(prev).set(pubkey, { profile: null, loading: false }))
+      setProfiles((prev) => new Map(prev).set(pubkey, { profile: null, loading: false }))
     }
   }
 
@@ -59,7 +49,7 @@ export function FollowingList({ pubkey }: { pubkey: string }) {
 
     const handleUpdate = (update: FollowingUpdate) => {
       if (update.type === 'add' && update.pubkey) {
-        setFollowing(prev => new Set([...prev, update.pubkey!]))
+        setFollowing((prev) => new Set([...prev, update.pubkey!]))
         fetchProfile(update.pubkey)
       } else if (update.type === 'complete') {
         setIsLoading(false)
@@ -67,12 +57,7 @@ export function FollowingList({ pubkey }: { pubkey: string }) {
     }
 
     nostrService.connect().then(() => {
-      const cleanup = subscribeToFollowingList(
-        nostrService.getNDK(),
-        pubkey,
-        MAX_FOLLOWERS,
-        handleUpdate
-      )
+      const cleanup = subscribeToFollowingList(nostrService.getNDK(), pubkey, MAX_FOLLOWERS, handleUpdate)
 
       return () => cleanup()
     })
@@ -95,11 +80,7 @@ export function FollowingList({ pubkey }: { pubkey: string }) {
             </TableHeader>
             <TableBody>
               {[...Array(3)].map((_, i) => (
-                <FollowingListRow 
-                  key={i} 
-                  pubkey="" 
-                  profileData={undefined}
-                />
+                <FollowingListRow key={i} pubkey="" profileData={undefined} />
               ))}
             </TableBody>
           </Table>
@@ -113,12 +94,8 @@ export function FollowingList({ pubkey }: { pubkey: string }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {Array.from(following).map(pubkey => (
-                <FollowingListRow 
-                  key={pubkey} 
-                  pubkey={pubkey} 
-                  profileData={profiles.get(pubkey)}
-                />
+              {Array.from(following).map((pubkey) => (
+                <FollowingListRow key={pubkey} pubkey={pubkey} profileData={profiles.get(pubkey)} />
               ))}
             </TableBody>
           </Table>
@@ -126,4 +103,4 @@ export function FollowingList({ pubkey }: { pubkey: string }) {
       </CardContent>
     </Card>
   )
-} 
+}

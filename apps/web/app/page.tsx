@@ -5,10 +5,10 @@ import { isValidEmail, formatPhoneNumber } from '@monorepo/common'
 import { FollowingList } from './components/FollowingList'
 import { DVMTest } from './components/DVMTest'
 import { RelayDebugger } from './components/RelayDebugger'
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { CheckCircle, XCircle } from "lucide-react"
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { CheckCircle, XCircle } from 'lucide-react'
 
 export default function Home() {
   const [email, setEmail] = useState('')
@@ -21,9 +21,9 @@ export default function Home() {
   const handleValidate = async () => {
     const localValidation = {
       isValidEmail: isValidEmail(email),
-      formattedPhone: formatPhoneNumber(phone)
+      formattedPhone: formatPhoneNumber(phone),
     }
-    
+
     const response = await fetch('http://localhost:3001/api/validate', {
       method: 'POST',
       headers: {
@@ -31,12 +31,12 @@ export default function Home() {
       },
       body: JSON.stringify({ email, phone }),
     })
-    
+
     const serverValidation = await response.json()
-    
+
     setValidationResult({
       isValidEmail: localValidation.isValidEmail && serverValidation.isValidEmail,
-      formattedPhone: serverValidation.formattedPhone
+      formattedPhone: serverValidation.formattedPhone,
     })
   }
 
@@ -50,27 +50,15 @@ export default function Home() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email"
-            />
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter email" />
           </div>
-          
+
           <div className="space-y-2">
-            <Input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="Enter phone"
-            />
+            <Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Enter phone" />
           </div>
-          
-          <Button onClick={handleValidate}>
-            Validate
-          </Button>
-          
+
+          <Button onClick={handleValidate}>Validate</Button>
+
           {validationResult && (
             <div className="mt-4 space-y-2">
               <div className="flex items-center gap-2">
@@ -79,15 +67,11 @@ export default function Home() {
                 ) : (
                   <XCircle className="text-red-500" />
                 )}
-                <span>
-                  Email is {validationResult.isValidEmail ? 'valid' : 'invalid'}
-                </span>
+                <span>Email is {validationResult.isValidEmail ? 'valid' : 'invalid'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="text-green-500" />
-                <span>
-                  Formatted phone: {validationResult.formattedPhone}
-                </span>
+                <span>Formatted phone: {validationResult.formattedPhone}</span>
               </div>
             </div>
           )}
@@ -99,4 +83,4 @@ export default function Home() {
       <FollowingList pubkey={testPubkey} />
     </main>
   )
-} 
+}

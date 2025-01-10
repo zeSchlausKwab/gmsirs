@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { nostrService } from '@/services/ndk'
 import { NDKEvent, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk'
 import { type DVMResponse } from '@monorepo/common'
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 
 const JOB_KIND = 5000
 const RESULT_KIND = 6000
@@ -33,31 +33,29 @@ export function DVMTest() {
         input,
         options: {
           uppercase,
-          reverse
-        }
+          reverse,
+        },
       })
+
+      await requestEvent.sign()
 
       // Subscribe to response before publishing request
       const sub = nostrService.getNDK().subscribe({
         kinds: [RESULT_KIND as NDKKind],
         '#e': [requestEvent.id],
-        limit: 1
+        limit: 1,
       })
 
       // Handle response
       sub.on('event', (event: NDKEvent) => {
         const content = JSON.parse(event.content)
+        console.log('Received response:', content)
         setResponse(content)
         setLoading(false)
         sub.stop()
       })
 
-      console.log('Request event:', requestEvent)
-
-      // Publish request
       await requestEvent.publish()
-
-      console.log('Request published', requestEvent)
 
       // Set timeout for response
       setTimeout(() => {
@@ -80,11 +78,7 @@ export function DVMTest() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label>Input Text</Label>
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Enter text to process..."
-          />
+          <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Enter text to process..." />
         </div>
 
         <div className="flex items-center space-x-4">
@@ -98,26 +92,23 @@ export function DVMTest() {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Checkbox
-              id="reverse"
-              checked={reverse}
-              onCheckedChange={(checked) => setReverse(checked as boolean)}
-            />
+            <Checkbox id="reverse" checked={reverse} onCheckedChange={(checked) => setReverse(checked as boolean)} />
             <Label htmlFor="reverse">Reverse</Label>
           </div>
         </div>
 
-        <Button 
-          onClick={handleSubmit} 
-          disabled={loading || !input}
-        >
+        <Button onClick={handleSubmit} disabled={loading || !input}>
           {loading ? 'Processing...' : 'Send Request'}
         </Button>
 
         {response && (
           <div className="mt-4 p-4 bg-muted rounded-lg">
-            <div><strong>Input:</strong> {response.input}</div>
-            <div><strong>Output:</strong> {response.output}</div>
+            <div>
+              <strong>Input:</strong> {response.input}
+            </div>
+            <div>
+              <strong>Output:</strong> {response.output}
+            </div>
             <div className="text-sm text-muted-foreground">
               Processed at: {new Date(response.processedAt).toLocaleString()}
             </div>
@@ -126,4 +117,4 @@ export function DVMTest() {
       </CardContent>
     </Card>
   )
-} 
+}

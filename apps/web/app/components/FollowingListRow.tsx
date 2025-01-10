@@ -1,7 +1,7 @@
 import type { NDKUser } from '@nostr-dev-kit/ndk'
-import { TableCell, TableRow } from "@/components/ui/table"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { TableCell, TableRow } from '@/components/ui/table'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 type ProfileData = {
   profile: NDKUser | null
@@ -21,9 +21,7 @@ const ProfileCell = ({ pubkey, profile }: { pubkey: string; profile: NDKUser | n
     </Avatar>
     <div>
       <div className="font-medium">{profile?.profile?.name || 'Anonymous'}</div>
-      <div className="text-sm text-muted-foreground font-mono">
-        {pubkey.slice(0, 8)}...
-      </div>
+      <div className="text-sm text-muted-foreground font-mono">{pubkey.slice(0, 8)}...</div>
     </div>
   </div>
 )
@@ -60,12 +58,8 @@ export function FollowingListRow({ pubkey, profileData }: FollowingListRowProps)
       <TableCell>
         <ProfileCell pubkey={pubkey} profile={profileData.profile} />
       </TableCell>
-      <TableCell>
-        {profileData.profile?.profile?.nip05 || '-'}
-      </TableCell>
-      <TableCell className="max-w-md truncate">
-        {profileData.profile?.profile?.about || '-'}
-      </TableCell>
+      <TableCell>{profileData.profile?.profile?.nip05 || '-'}</TableCell>
+      <TableCell className="max-w-md truncate">{profileData.profile?.profile?.about || '-'}</TableCell>
     </TableRow>
   )
-} 
+}

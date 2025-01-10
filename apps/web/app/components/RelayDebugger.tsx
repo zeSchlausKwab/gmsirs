@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { nostrService } from '@/services/ndk'
 import { NDKEvent, NDKFilter, NDKSubscription } from '@nostr-dev-kit/ndk'
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 type DebugEvent = {
   id: string
@@ -20,23 +20,28 @@ export function RelayDebugger() {
   const [subscription, setSubscription] = useState<NDKSubscription | null>(null)
 
   useEffect(() => {
-    const filter: NDKFilter = { 
+    const filter: NDKFilter = {
       kinds: [0, 1, 3, 5000, 6000], // Add more kinds as needed
-      limit: 100
+      limit: 100,
     }
-    
+
     const sub = nostrService.getNDK().subscribe(filter)
     setSubscription(sub)
 
     sub.on('event', (event: NDKEvent) => {
-      setEvents(prev => [{
-        id: event.id,
-        timestamp: event.created_at || Date.now(),
-        kind: event.kind || 0,
-        content: event.content,
-        pubkey: event.pubkey,
-        tags: event.tags as string[][]
-      }, ...prev].slice(0, 100)) // Add new events to the top, keep last 100
+      setEvents((prev) =>
+        [
+          {
+            id: event.id,
+            timestamp: event.created_at || Date.now(),
+            kind: event.kind || 0,
+            content: event.content,
+            pubkey: event.pubkey,
+            tags: event.tags as string[][],
+          },
+          ...prev,
+        ].slice(0, 100),
+      ) // Add new events to the top, keep last 100
     })
 
     return () => {
@@ -50,7 +55,7 @@ export function RelayDebugger() {
       1: 'Text Note',
       3: 'Contacts',
       5000: 'DVM Request',
-      6000: 'DVM Response'
+      6000: 'DVM Response',
     }
     return kinds[kind] || `Kind ${kind}`
   }
@@ -67,14 +72,12 @@ export function RelayDebugger() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Relay Events</CardTitle>
-        <span className="text-sm text-muted-foreground">
-          {events.length} events captured
-        </span>
+        <span className="text-sm text-muted-foreground">{events.length} events captured</span>
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[400px] rounded-md border p-4">
           <div className="space-y-4">
-            {events.map(event => (
+            {events.map((event) => (
               <div key={event.id} className="text-xs font-mono space-y-1">
                 <div className="flex justify-between text-muted-foreground">
                   <span>{new Date(event.timestamp * 1000).toLocaleString()}</span>
@@ -91,16 +94,12 @@ export function RelayDebugger() {
                 {event.tags.length > 0 && (
                   <div>
                     <span className="text-blue-500">Tags: </span>
-                    <pre className="whitespace-pre-wrap">
-                      {JSON.stringify(event.tags, null, 2)}
-                    </pre>
+                    <pre className="whitespace-pre-wrap">{JSON.stringify(event.tags, null, 2)}</pre>
                   </div>
                 )}
                 <div>
                   <span className="text-blue-500">Content: </span>
-                  <pre className="whitespace-pre-wrap overflow-x-auto">
-                    {formatContent(event.content)}
-                  </pre>
+                  <pre className="whitespace-pre-wrap overflow-x-auto">{formatContent(event.content)}</pre>
                 </div>
               </div>
             ))}
@@ -109,4 +108,4 @@ export function RelayDebugger() {
       </CardContent>
     </Card>
   )
-} 
+}
