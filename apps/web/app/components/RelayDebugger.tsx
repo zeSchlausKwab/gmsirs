@@ -32,11 +32,11 @@ export function RelayDebugger() {
       setEvents(prev => [{
         id: event.id,
         timestamp: event.created_at || Date.now(),
-        kind: event.kind,
+        kind: event.kind || 0,
         content: event.content,
         pubkey: event.pubkey,
-        tags: event.tags
-      }, ...prev].slice(0, 100)) // Keep last 100 events
+        tags: event.tags as string[][]
+      }, ...prev].slice(0, 100)) // Add new events to the top, keep last 100
     })
 
     return () => {
