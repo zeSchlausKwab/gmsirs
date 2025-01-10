@@ -1,0 +1,10 @@
+{
+  "name": "@monorepo/relay",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "go run main.go",
+    "build": "go build -o relay",
+    "start": "./relay"
+  }
+} 

@@ -30,4 +30,9 @@ yarn-error.log*
 .env.production.local
 
 # turbo
-.turbo 
+.turbo
+
+# database
+nostr.db
+
+# apps/relay/data/ 
