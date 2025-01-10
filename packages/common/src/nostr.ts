@@ -1,5 +1,5 @@
 import type NDK from '@nostr-dev-kit/ndk'
-import { type NDKSubscription, type NDKEvent } from '@nostr-dev-kit/ndk'
+import { type NDKSubscription, type NDKEvent, type NDKUser } from '@nostr-dev-kit/ndk'
 
 export type FollowingUpdate = {
   type: 'add' | 'complete'
@@ -8,10 +8,12 @@ export type FollowingUpdate = {
 
 export function subscribeToFollowingList(
   ndk: NDK, 
-  targetPubkey: string, 
+  targetPubkey: string,
+  maxFollowers: number, 
   onUpdate: (update: FollowingUpdate) => void
 ): () => void {
   let subscription: NDKSubscription | undefined
+  let followersCount = 0
 
   const cleanup = () => {
     if (subscription) {
@@ -20,16 +22,15 @@ export function subscribeToFollowingList(
     }
   }
 
-  // Set timeout to auto-close subscription
   const timeoutId = setTimeout(() => {
     onUpdate({ type: 'complete' })
     cleanup()
-  }, 5000) // Adjust timeout as needed
+  }, 5000)
 
   const processContactList = async () => {
     subscription = ndk.subscribe(
       {
-        kinds: [3], // Contact List
+        kinds: [3],
         authors: [targetPubkey],
       },
       { closeOnEose: false }
@@ -38,7 +39,8 @@ export function subscribeToFollowingList(
     subscription.on('event', (event: NDKEvent) => {
       const tags = event.tags
       tags.forEach(tag => {
-        if (tag[0] === 'p') {
+        if (tag[0] === 'p' && followersCount < maxFollowers) {
+          followersCount++
           onUpdate({ type: 'add', pubkey: tag[1] })
         }
       })
@@ -47,7 +49,6 @@ export function subscribeToFollowingList(
 
   processContactList()
 
-  // Return cleanup function
   return () => {
     clearTimeout(timeoutId)
     cleanup()
