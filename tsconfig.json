@@ -5,7 +5,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
-    "declaration": true,
-    "preserveWatchOutput": true
+    "baseUrl": ".",
+    "paths": {
+      "@monorepo/common/*": ["packages/common/src/*"],
+      "@monorepo/common": ["packages/common/src"],
+      "@monorepo/db/*": ["packages/db/src/*"],
+      "@monorepo/db": ["packages/db/src"]
+    }
   }
 } 

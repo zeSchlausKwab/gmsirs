@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import { cors } from 'hono/cors'
+import { isValidEmail, formatPhoneNumber } from '@monorepo/common'
 
 const app = new Hono()
 
@@ -21,6 +22,15 @@ app.get('/api/health', (c) => {
   return c.json({
     status: 'healthy',
     timestamp: new Date().toISOString()
+  })
+})
+
+app.post('/api/validate', async (c) => {
+  const { email, phone } = await c.req.json()
+  
+  return c.json({
+    isValidEmail: email ? isValidEmail(email) : false,
+    formattedPhone: phone ? formatPhoneNumber(phone) : '',
   })
 })
 
