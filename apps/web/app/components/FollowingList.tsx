@@ -2,7 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { subscribeToFollowingList, type FollowingUpdate } from '@monorepo/common'
-import { nostrService } from 'apps/web/services/ndk'
+import { nostrService } from '@/services/ndk'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function FollowingList({ pubkey }: { pubkey: string }) {
   const [following, setFollowing] = useState<Set<string>>(new Set())
@@ -20,7 +30,6 @@ export function FollowingList({ pubkey }: { pubkey: string }) {
       }
     }
 
-    // Connect NDK if not already connected
     nostrService.connect().then(() => {
       const cleanup = subscribeToFollowingList(
         nostrService.getNDK(),
@@ -33,16 +42,40 @@ export function FollowingList({ pubkey }: { pubkey: string }) {
   }, [pubkey])
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold">Following List</h2>
-      {isLoading && <p>Loading...</p>}
-      <ul className="space-y-2">
-        {Array.from(following).map(followedPubkey => (
-          <li key={followedPubkey} className="font-mono text-sm">
-            {followedPubkey}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Following List</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Pubkey</TableHead>
+                <TableHead>Short Form</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from(following).map(followedPubkey => (
+                <TableRow key={followedPubkey}>
+                  <TableCell className="font-mono text-sm">
+                    {followedPubkey}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {followedPubkey.slice(0, 8)}...
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
   )
 } 
