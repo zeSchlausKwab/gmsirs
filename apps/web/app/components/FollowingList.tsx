@@ -1,7 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { subscribeToFollowingList, type FollowingUpdate } from '@monorepo/common'
+import { 
+  subscribeToFollowingList, 
+  type FollowingUpdate, 
+  PublicKeySchema, 
+  type UserContacts 
+} from '@monorepo/common'
 import { nostrService } from '@/services/ndk'
 import {
   Table,
@@ -15,6 +20,14 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export function FollowingList({ pubkey }: { pubkey: string }) {
+  // Validate pubkey prop
+  useEffect(() => {
+    const result = PublicKeySchema.safeParse(pubkey)
+    if (!result.success) {
+      console.error('Invalid pubkey:', result.error)
+    }
+  }, [pubkey])
+
   const [following, setFollowing] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
 

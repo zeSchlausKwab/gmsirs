@@ -2,7 +2,8 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import { cors } from 'hono/cors'
-import { isValidEmail, formatPhoneNumber } from '@monorepo/common'
+import { isValidEmail, formatPhoneNumber, PublicKeySchema, UserContactsSchema } from '@monorepo/common'
+import { z } from 'zod'
 
 const app = new Hono()
 
@@ -25,8 +26,20 @@ app.get('/api/health', (c) => {
   })
 })
 
+const ValidateRequestSchema = z.object({
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+})
+
 app.post('/api/validate', async (c) => {
-  const { email, phone } = await c.req.json()
+  const body = await c.req.json()
+  const result = ValidateRequestSchema.safeParse(body)
+  
+  if (!result.success) {
+    return c.json({ error: result.error.issues }, 400)
+  }
+  
+  const { email, phone } = result.data
   
   return c.json({
     isValidEmail: email ? isValidEmail(email) : false,
