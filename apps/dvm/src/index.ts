@@ -1,6 +1,6 @@
+import { DVMRequestSchema } from '@monorepo/common'
+import { NDKEvent, NDKFilter } from '@nostr-dev-kit/ndk'
 import { dvmService } from './services/ndk'
-import { NDKEvent, NDKFilter, type NDKSubscription } from '@nostr-dev-kit/ndk'
-import { DVMRequestSchema, type DVMRequest } from '@monorepo/common'
 
 const JOB_KIND = 5000
 const RESULT_KIND = 6000

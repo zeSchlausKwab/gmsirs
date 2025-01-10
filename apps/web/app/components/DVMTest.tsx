@@ -20,6 +20,12 @@ export function DVMTest() {
   const [response, setResponse] = useState<DVMResponse | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const resetForm = () => {
+    setInput('')
+    setUppercase(false)
+    setReverse(false)
+  }
+
   const handleSubmit = async () => {
     setLoading(true)
     setResponse(null)
@@ -52,6 +58,7 @@ export function DVMTest() {
         console.log('Received response:', content)
         setResponse(content)
         setLoading(false)
+        resetForm()
         sub.stop()
       })
 

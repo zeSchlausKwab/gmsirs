@@ -90,6 +90,9 @@ importers:
       '@nostr-dev-kit/ndk':
         specifier: ^2.11.0
         version: 2.11.0(typescript@5.7.3)
+      '@nostr-dev-kit/ndk-cache-dexie':
+        specifier: ^2.5.9
+        version: 2.5.9(typescript@5.7.3)
       '@radix-ui/react-avatar':
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -530,6 +533,9 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
+
+  '@nostr-dev-kit/ndk-cache-dexie@2.5.9':
+    resolution: {integrity: sha512-SZ5FjON0QPekiC7oW9Hy3JQxG0Oxxtud9LBa1q/A49JV/Qppv1x37nFHxi0XLxEbDgFTNYbaN27Zjfp2NPem2g==}
 
   '@nostr-dev-kit/ndk@2.11.0':
     resolution: {integrity: sha512-FKIMtcVsVcquzrC+yir9lOXHCIHmQ3IKEVCMohqEB7N96HjP2qrI9s5utbjI3lkavFNF5tXg1Gp9ODEo7XCfLA==}
@@ -1136,6 +1142,9 @@ packages:
   define-properties@1.2.1:
     resolution: {integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==}
     engines: {node: '>= 0.4'}
+
+  dexie@4.0.10:
+    resolution: {integrity: sha512-eM2RzuR3i+M046r2Q0Optl3pS31qTWf8aFuA7H9wnsHTwl8EPvroVLwvQene/6paAs39Tbk6fWZcn2aZaHkc/w==}
 
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
@@ -2727,6 +2736,17 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
+  '@nostr-dev-kit/ndk-cache-dexie@2.5.9(typescript@5.7.3)':
+    dependencies:
+      '@nostr-dev-kit/ndk': 2.11.0(typescript@5.7.3)
+      debug: 4.4.0
+      dexie: 4.0.10
+      nostr-tools: 2.10.4(typescript@5.7.3)
+      typescript-lru-cache: 2.0.0
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
+
   '@nostr-dev-kit/ndk@2.11.0(typescript@5.7.3)':
     dependencies:
       '@noble/curves': 1.8.0
@@ -3356,6 +3376,8 @@ snapshots:
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
 
+  dexie@4.0.10: {}
+
   didyoumean@1.2.2: {}
 
   dir-glob@3.0.1:
@@ -3588,7 +3610,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.31.0)(eslint@8.57.1))(eslint@8.57.1):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -3610,7 +3632,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0(eslint-plugin-import@2.31.0)(eslint@8.57.1))(eslint@8.57.1)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.7.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.7.0)(eslint@8.57.1)
       hasown: 2.0.2
       is-core-module: 2.16.1
       is-glob: 4.0.3
