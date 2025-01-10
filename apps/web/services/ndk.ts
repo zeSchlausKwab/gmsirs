@@ -15,10 +15,10 @@ class NostrService {
     const signer = new NDKPrivateKeySigner(PRIVATE_KEY)
     this.ndk = new NDK({
       explicitRelayUrls: [
-        ...defaultRelays,
-        'wss://relay.damus.io',
-        'wss://relay.nostr.band',
         'ws://localhost:3002'
+        // ...defaultRelays,
+        // 'wss://relay.damus.io',
+        // 'wss://relay.nostr.band',
       ],
       signer
     })

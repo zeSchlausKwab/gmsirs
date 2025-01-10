@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { isValidEmail, formatPhoneNumber } from '@monorepo/common'
 import { FollowingList } from './components/FollowingList'
+import { DVMTest } from './components/DVMTest'
+import { RelayDebugger } from './components/RelayDebugger'
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -92,6 +94,8 @@ export default function Home() {
         </CardContent>
       </Card>
 
+      <DVMTest />
+      <RelayDebugger />
       <FollowingList pubkey={testPubkey} />
     </main>
   )
