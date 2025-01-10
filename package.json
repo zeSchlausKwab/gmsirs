@@ -1,0 +1,13 @@
+{
+  "name": "monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel dev",
+    "build": "pnpm --recursive build",
+    "lint": "pnpm --parallel lint",
+    "format": "pnpm --parallel format"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2"
+  }
+} 

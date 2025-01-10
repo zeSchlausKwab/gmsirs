@@ -1,0 +1,15 @@
+{
+  "name": "@monorepo/common",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "eslint-config-custom": "workspace:*",
+    "typescript": "^5.4.2"
+  }
+} 
