@@ -1,6 +1,9 @@
-import NDK, { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk'
+import NDK, { NDKEvent, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk'
 import { config } from 'dotenv'
 import { resolve } from 'path'
+import WebSocket from 'ws'
+
+(global as any).WebSocket = WebSocket
 
 // Load root .env file
 config({ path: resolve(__dirname, '../../../../.env') })
@@ -19,8 +22,6 @@ class DVMService {
     this.ndk = new NDK({
       explicitRelayUrls: [
         'ws://localhost:3002',
-        // 'wss://relay.nostr.band',
-        // 'wss://relay.damus.io'
       ],
       signer
     })
@@ -34,7 +35,12 @@ class DVMService {
   }
 
   public async connect(): Promise<void> {
-    await this.ndk.connect()
+    try {
+      await this.ndk.connect()
+    } catch (error) {
+      console.error('Connection error:', error)
+      throw error
+    }
   }
 
   public getNDK(): NDK {

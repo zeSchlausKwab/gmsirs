@@ -18,7 +18,6 @@ func main() {
 	}
 
 	relay := khatru.NewRelay()
-
 	// Get DB path from env or use default
 	dbPath := os.Getenv("SQLITE_DB_PATH")
 	if dbPath == "" {

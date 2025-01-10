@@ -34,7 +34,7 @@ async function processRequest(event: NDKEvent): Promise<string> {
 }
 
 async function handleEvent(event: NDKEvent) {
-    console.log('Handling event:', event)
+    // console.log('Handling event:', event)
   try {
     const output = await processRequest(event)
     
@@ -59,15 +59,24 @@ async function handleEvent(event: NDKEvent) {
 }
 
 async function main() {
-  await dvmService.connect()
-  console.log('DVM connected to relays')
-
-  const filter: NDKFilter = { kinds: [JOB_KIND] }
-  const sub = dvmService.getNDK().subscribe(filter)
+  try {
+    await dvmService.connect()
   
-  sub.on('event', handleEvent)
+    const filter: NDKFilter = { kinds: [JOB_KIND], since: Math.floor(Date.now() / 1000) }
+    const sub = dvmService.getNDK().subscribe(filter, { 
+      closeOnEose: false,
+    })
   
-  console.log('DVM listening for requests...')
+    sub.on('event', (event: NDKEvent) => {
+      handleEvent(event)
+    })
+  
+  
+    console.log('DVM listening for requests...')
+  } catch (error) {
+    console.error('Failed to start DVM:', error)
+    process.exit(1)
+  }
 }
 
 main().catch(console.error) 
