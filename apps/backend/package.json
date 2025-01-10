@@ -12,7 +12,8 @@
     "@monorepo/common": "workspace:*",
     "@monorepo/db": "workspace:*",
     "hono": "^4.0.9",
-    "@hono/node-server": "^1.8.2"
+    "@hono/node-server": "^1.8.2",
+    "@nostr-dev-kit/ndk": "^2.5.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.25",

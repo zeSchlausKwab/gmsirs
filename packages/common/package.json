@@ -10,5 +10,8 @@
   "devDependencies": {
     "eslint-config-custom": "workspace:*",
     "typescript": "^5.4.2"
+  },
+  "dependencies": {
+    "@nostr-dev-kit/ndk": "^2.5.1"
   }
 } 
