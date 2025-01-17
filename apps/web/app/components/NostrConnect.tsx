@@ -5,65 +5,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { nostrService } from '@/services/ndk'
 import { NDKNip46Signer, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk'
 import { useState } from 'react'
-import { NostrConnectQRDialog } from './NostrConnectQRDialog'
+import { BunkerConnectDialog } from './BunkerConnectDialog'
 
 export function NostrConnect() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [showConnect, setShowConnect] = useState(false)
   const [connected, setConnected] = useState(false)
-  const [showQR, setShowQR] = useState(false)
-  const [connectionUrl, setConnectionUrl] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
-  const handleCreateConnection = async () => {
-    setLoading(true)
-    setError(null)
+  const handleConnect = async (signer: NDKNip46Signer) => {
+    const ndk = nostrService.getNDK()
+    ndk.signer = signer
 
-    try {
-      const ndk = nostrService.getNDK()
-      if (!ndk.signer) {
-        throw new Error('No signer available')
-      }
+    const user = await ndk.signer.user()
+    const profile = await user.fetchProfile()
+    console.log(profile)
 
-      const user = await ndk.signer.user()
-      const pubkey = user?.pubkey
-      if (!pubkey) {
-        throw new Error('No pubkey available')
-      }
-
-      // Create connection URL
-      const host = window.location.protocol + '//' + window.location.host
-      const params = new URLSearchParams()
-      params.set('relay', 'ws://localhost:3002')
-      params.set('name', 'My Nostr App')
-      params.set('url', host)
-      const url = `nostrconnect://${pubkey}?${params.toString()}`
-
-      // Create NIP-46 signer immediately
-      const nip46signer = new NDKNip46Signer(ndk, url)
-
-      // Show QR code while waiting for connection
-      setConnectionUrl(url)
-      setShowQR(true)
-
-      // Wait for connection
-      await nip46signer.blockUntilReady()
-
-      // Update NDK with new signer
-      ndk.signer = nip46signer
-      setConnected(true)
-      setLoading(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create connection')
-      console.error('Connection error:', err)
-      setLoading(false)
-    }
+    setConnected(true)
   }
 
   const handleDisconnect = () => {
     const ndk = nostrService.getNDK()
     ndk.signer = new NDKPrivateKeySigner(process.env.NEXT_PUBLIC_DEFAULT_PRIVATE_KEY || '')
     setConnected(false)
-    setConnectionUrl('')
   }
 
   return (
@@ -74,23 +37,18 @@ export function NostrConnect() {
         </CardHeader>
         <CardContent className="space-y-4">
           {error && <div className="text-sm text-red-500">{error}</div>}
-
           <div className="flex gap-2">
             {connected ? (
               <Button onClick={handleDisconnect}>Disconnect</Button>
             ) : (
-              <Button onClick={handleCreateConnection} disabled={loading}>
-                {loading ? 'Connecting...' : 'Connect with QR Code'}
-              </Button>
+              <Button onClick={() => setShowConnect(true)}>Scan Bunker QR</Button>
             )}
           </div>
-
-          {loading && <div className="text-sm text-muted-foreground">Waiting for connection...</div>}
-          {connected && <div className="text-sm text-green-500">Successfully connected to remote signer</div>}
+          {connected && <div className="text-sm text-green-500">Successfully connected to bunker</div>}
         </CardContent>
       </Card>
 
-      <NostrConnectQRDialog open={showQR} onOpenChange={setShowQR} connectionUrl={connectionUrl} />
+      <BunkerConnectDialog open={showConnect} onOpenChange={setShowConnect} onConnect={handleConnect} />
     </>
   )
 }

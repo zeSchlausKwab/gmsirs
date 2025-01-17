@@ -40,5 +40,8 @@ func main() {
 	}
 
 	fmt.Printf("running on :%s\n", port)
-	http.ListenAndServe(":"+port, relay)
+	err := http.ListenAndServe("0.0.0.0:"+port, relay)
+	if err != nil {
+		panic(err)
+	}
 }

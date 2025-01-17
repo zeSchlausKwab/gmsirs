@@ -2,8 +2,7 @@ import NDK, { NDKEvent, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk'
 import { config } from 'dotenv'
 import { resolve } from 'path'
 import WebSocket from 'ws'
-
-(global as any).WebSocket = WebSocket
+;(global as any).WebSocket = WebSocket
 
 // Load root .env file
 config({ path: resolve(__dirname, '../../../../.env') })
@@ -21,9 +20,10 @@ class DVMService {
     const signer = new NDKPrivateKeySigner(PRIVATE_KEY)
     this.ndk = new NDK({
       explicitRelayUrls: [
-        'ws://localhost:3002',
+        'ws://192.168.0.170:3002',
+        // 'ws://localhost:3002',
       ],
-      signer
+      signer,
     })
   }
 
@@ -48,4 +48,4 @@ class DVMService {
   }
 }
 
-export const dvmService = DVMService.getInstance() 
+export const dvmService = DVMService.getInstance()
