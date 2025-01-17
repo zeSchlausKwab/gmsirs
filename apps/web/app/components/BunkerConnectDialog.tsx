@@ -1,6 +1,6 @@
 'use client'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
@@ -42,6 +42,7 @@ export function BunkerConnectDialog({ open, onOpenChange, onConnect }: BunkerCon
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Connect to Bunker</DialogTitle>
+          <DialogDescription>Scan a Bunker QR code or enter a bunker:// URL to connect.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <Scanner

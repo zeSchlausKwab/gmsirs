@@ -8,8 +8,12 @@ import WebSocket from 'ws'
 config({ path: resolve(__dirname, '../../../../.env') })
 
 const PRIVATE_KEY = process.env.DVM_PRIVATE_KEY
+const LOCAL_MACHINE_IP = process.env.NEXT_PUBLIC_LOCAL_MACHINE_IP
 if (!PRIVATE_KEY) {
   throw new Error('DVM_PRIVATE_KEY environment variable is required')
+}
+if (!LOCAL_MACHINE_IP) {
+  throw new Error('NEXT_PUBLIC_LOCAL_MACHINE_IP environment variable is required')
 }
 
 class DVMService {
@@ -20,7 +24,7 @@ class DVMService {
     const signer = new NDKPrivateKeySigner(PRIVATE_KEY)
     this.ndk = new NDK({
       explicitRelayUrls: [
-        'ws://192.168.0.170:3002',
+        `ws://${LOCAL_MACHINE_IP}:3002`,
         // 'ws://localhost:3002',
       ],
       signer,

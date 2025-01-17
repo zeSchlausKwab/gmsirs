@@ -4,15 +4,28 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { nostrService } from '@/services/ndk'
 import { NDKNip46Signer, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BunkerConnectDialog } from './BunkerConnectDialog'
+import { NostrConnectQRDialog } from './NostrConnectQRDialog'
 
 export function NostrConnect() {
-  const [showConnect, setShowConnect] = useState(false)
+  const [showConnectBunkerScanner, setShowConnectBunkerScanner] = useState(false)
+  const [showConnectQR, setShowConnectQR] = useState(false)
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleConnect = async (signer: NDKNip46Signer) => {
+  const handleConnectBunkerScanner = async (signer: NDKNip46Signer) => {
+    const ndk = nostrService.getNDK()
+    ndk.signer = signer
+
+    const user = await ndk.signer.user()
+    const profile = await user.fetchProfile()
+    console.log(profile)
+
+    setConnected(true)
+  }
+
+  const handleConnectQR = async (signer: NDKNip46Signer) => {
     const ndk = nostrService.getNDK()
     ndk.signer = signer
 
@@ -41,14 +54,22 @@ export function NostrConnect() {
             {connected ? (
               <Button onClick={handleDisconnect}>Disconnect</Button>
             ) : (
-              <Button onClick={() => setShowConnect(true)}>Scan Bunker QR</Button>
+              <>
+                <Button onClick={() => setShowConnectBunkerScanner(true)}>Scan Bunker QR</Button>
+                <Button onClick={() => setShowConnectQR(true)}>Show connection QR</Button>
+              </>
             )}
           </div>
           {connected && <div className="text-sm text-green-500">Successfully connected to bunker</div>}
         </CardContent>
       </Card>
 
-      <BunkerConnectDialog open={showConnect} onOpenChange={setShowConnect} onConnect={handleConnect} />
+      <BunkerConnectDialog
+        open={showConnectBunkerScanner}
+        onOpenChange={setShowConnectBunkerScanner}
+        onConnect={handleConnectBunkerScanner}
+      />
+      <NostrConnectQRDialog open={showConnectQR} onOpenChange={setShowConnectQR} onDone={handleConnectQR} />
     </>
   )
 }
