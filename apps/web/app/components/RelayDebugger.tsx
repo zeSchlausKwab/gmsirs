@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { nostrService } from '@/services/ndk'
-import { NDKEvent, NDKFilter, NDKSubscription } from '@nostr-dev-kit/ndk'
+import { NDKEvent, NDKFilter, NDKKind, NDKSubscription } from '@nostr-dev-kit/ndk'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -51,11 +51,12 @@ export function RelayDebugger() {
 
   const getEventKindLabel = (kind: number): string => {
     const kinds: Record<number, string> = {
-      0: 'Metadata',
-      1: 'Text Note',
-      3: 'Contacts',
-      5000: 'DVM Request',
-      6000: 'DVM Response',
+      [NDKKind.Metadata]: 'Metadata',
+      [NDKKind.Text]: 'Text Note',
+      [NDKKind.Contacts]: 'Contacts',
+      [NDKKind.DVMReqTextExtraction]: 'DVM Request',
+      [NDKKind.DVMJobFeedback]: 'DVM Response',
+      [NDKKind.NostrConnect]: 'NostrConnect',
     }
     return kinds[kind] || `Kind ${kind}`
   }

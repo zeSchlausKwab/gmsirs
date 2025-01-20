@@ -1,14 +1,15 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { QRCodeSVG } from 'qrcode.react'
-import { CopyIcon, Loader2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { nostrService } from '@/services/ndk'
-import { NDKEvent, NDKNip46Signer, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk'
-import { nip04 } from 'nostr-tools'
+import { NDKEvent, NDKKind, NDKNip46Signer, NDKPrivateKeySigner, NDKSubscription } from '@nostr-dev-kit/ndk'
+import { CopyIcon, Loader2 } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+import { NOSTR_CONNECT_KEY } from './NostrConnect'
 interface NostrConnectQRDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -16,112 +17,106 @@ interface NostrConnectQRDialogProps {
 }
 
 export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnectQRDialogProps) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [connectionUrl, setConnectionUrl] = useState<string | null>(null)
-  const [tempPubkey, setTempPubkey] = useState<string | null>(null)
+  const [localSigner, setLocalSigner] = useState<NDKPrivateKeySigner | null>(null)
+  const [localPubkey, setLocalPubkey] = useState<string | null>(null)
 
-  const createConnectionUrl = (pubkey: string) => {
+  const [loading, setLoading] = useState(false)
+
+  const [tempSecret, setTempSecret] = useState<string | null>(null)
+
+  // Initialize local signer once when dialog opens
+  useEffect(() => {
+    if (open && !localSigner) {
+      const signer = NDKPrivateKeySigner.generate()
+      setLocalSigner(signer)
+      signer.user().then((user) => {
+        setLocalPubkey(user.pubkey)
+      })
+    } else if (!open) {
+      setLocalSigner(null)
+      setLocalPubkey(null)
+    }
+  }, [open])
+
+  const connectionUrl = useMemo(() => {
+    if (!localPubkey) return null
     const localMachineIp = process.env.NEXT_PUBLIC_LOCAL_MACHINE_IP
     const relay = `ws://${localMachineIp}:3002`
     const host = location.protocol + '//' + localMachineIp
+    const secret = Math.random().toString(36).substring(2, 15)
+
+    setTempSecret(secret)
 
     const params = new URLSearchParams()
     params.set('relay', relay)
     params.set('name', 'GMsirs')
     params.set('url', host)
-    params.set('image', new URL('/apple-touch-icon.png', host).toString())
+    // params.set('image', new URL('/apple-touch-icon.png', host).toString())
+    params.set('secret', secret)
+    // params.set('perms', 'sign_event,get_public_key,get_relays')
 
-    return `nostrconnect://${pubkey}?` + params.toString()
+    return `nostrconnect://${localPubkey}?` + params.toString()
+  }, [localPubkey])
+
+  const constructBunkerUrl = (event: NDKEvent) => {
+    const pTag = event.tags.find((tag) => tag[0] === 'p')
+    if (!pTag?.[1]) throw new Error('No pubkey in p tag')
+
+    const baseUrl = `bunker://${event.pubkey}?`
+    const localMachineIp = process.env.NEXT_PUBLIC_LOCAL_MACHINE_IP
+    const relay = `ws://${localMachineIp}:3002`
+
+    const params = new URLSearchParams()
+    params.set('relay', relay)
+    params.set('secret', tempSecret ?? '')
+
+    return baseUrl + params.toString()
   }
 
   useEffect(() => {
-    const setupConnection = async () => {
-      const newPkSigner = NDKPrivateKeySigner.generate()
-      const user = await newPkSigner.user()
-      const pubkey = user.pubkey
+    console.log('useEffect', connectionUrl)
+    const ndk = nostrService.getNDK()
+    const ackSub = ndk.subscribe({
+      kinds: [NDKKind.NostrConnect],
+      '#p': [localPubkey ?? ''],
+      since: Math.floor(Date.now() / 1000),
+      limit: 1,
+    })
 
-      setTempPubkey(pubkey)
-      setConnectionUrl(createConnectionUrl(pubkey))
+    ackSub.on('event', async (event) => {
+      if (!localSigner) return
+      await event.decrypt(undefined, localSigner)
+      const response = JSON.parse(event.content)
 
-      const ndk = nostrService.getNDK()
-      console.log('Listening for events for pubkey:', pubkey)
+      console.log('event author', event.pubkey)
 
-      const localSigner = NDKPrivateKeySigner.generate()
-      // const remoteSigner = new NDKNip46Signer(ndk, token, localSigner)
-      // const user = await remoteSigner.blockUntilReady()
+      if (response.result && response.result === tempSecret) {
+        console.log('Valid secret in response')
+        const bunkerUrl = constructBunkerUrl(event)
+        console.log('bunkerUrl', bunkerUrl)
+        const nip46Signer = new NDKNip46Signer(ndk, bunkerUrl, localSigner)
+        await nip46Signer.blockUntilReady()
+        console.log('remoteSigner', nip46Signer)
 
-      const sub = ndk.subscribe({
-        kinds: [24133],
-        '#p': [pubkey],
-        since: 0,
-      })
-
-      sub.on('event', async (event: NDKEvent) => {
-        console.log('Event:', event)
-        const localMachineIp = process.env.NEXT_PUBLIC_LOCAL_MACHINE_IP
-        const relay = `ws://${localMachineIp}:3002`
-        const userPubkey = event.author
-
-        const params = new URLSearchParams()
-        params.set('relay', relay)
-        params.set('secret', Math.random().toString(36).substring(2, 15))
-
-        const finalString = `bunker://${userPubkey.pubkey}?` + params.toString()
-
-        console.log('Final string:', finalString)
-
-        const remoteSigner = new NDKNip46Signer(ndk, finalString, newPkSigner)
-        console.log('Remote signer:', remoteSigner)
-        const user = await remoteSigner.blockUntilReady()
-
-        console.log('User:', user)
-
-        if (user) {
-          onDone(remoteSigner)
-        }
-
-        // console.log('Received event:', event)
-        // const decodedContent = await nip04.decrypt(newPkSigner.privateKey ?? '', event.pubkey, event.content)
-        // const userPubkey = event.pubkey
-        // const json = JSON.parse(decodedContent)
-
-        // console.log('JSON:', json)
-
-        // const profile = await event.author.fetchProfile()
-
-        // console.log('Profile:', profile)
-
-        // if (userPubkey) {
-        //   console.log('Connection successful')
-        //   const newNip46Signer = new NDKNip46Signer(ndk, userPubkey, newPkSigner)
-
-        //   await newNip46Signer.blockUntilReady()
-
-        //   onDone(newNip46Signer)
-        // }
-
-        // console.log('Decoded content:', decodedContent)
-      })
-
-      return () => {
-        sub.stop()
+        onDone(nip46Signer)
+        onOpenChange(false)
+      } else if (response.method && response.method === 'connect') {
+        console.log('Connect method in response')
+        return
       }
-    }
+    })
 
-    if (open) {
-      setupConnection()
+    return () => {
+      ackSub.stop()
     }
-  }, [open])
+  }, [connectionUrl])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Scan with NIP-46 App</DialogTitle>
-          <DialogDescription>
-            Scan this QR code with your NIP-46 compatible app (like Amber) or copy the connection URL below.
-          </DialogDescription>
+          <DialogDescription>{localPubkey ?? JSON.stringify(localPubkey)}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center gap-4">
           {loading ? (
@@ -145,7 +140,7 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
               <p className="text-sm text-muted-foreground">Generating connection...</p>
             </div>
           )}
-          {error && <div className="text-sm text-red-500">{error}</div>}
+          {/* {error && <div className="text-sm text-red-500">{error}</div>} */}
         </div>
       </DialogContent>
     </Dialog>

@@ -8,11 +8,34 @@ import { useEffect, useState } from 'react'
 import { BunkerConnectDialog } from './BunkerConnectDialog'
 import { NostrConnectQRDialog } from './NostrConnectQRDialog'
 
+export const NOSTR_CONNECT_KEY = 'nostr_connect_url'
+
 export function NostrConnect() {
   const [showConnectBunkerScanner, setShowConnectBunkerScanner] = useState(false)
   const [showConnectQR, setShowConnectQR] = useState(false)
   const [connected, setConnected] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const storedUrl = localStorage.getItem(NOSTR_CONNECT_KEY)
+    if (storedUrl && storedUrl.startsWith('bunker://')) {
+      initializeStoredSigner(storedUrl)
+    }
+  }, [])
+
+  const initializeStoredSigner = async (url: string) => {
+    try {
+      const ndk = nostrService.getNDK()
+      const nip46signer = new NDKNip46Signer(ndk, url)
+      await nip46signer.blockUntilReady()
+      ndk.signer = nip46signer
+      setConnected(true)
+    } catch (error) {
+      console.error('Failed to initialize stored signer:', error)
+      // localStorage.removeItem(NOSTR_CONNECT_KEY)
+      setError('Failed to reconnect to signer. Please try connecting again.')
+    }
+  }
 
   const handleConnectBunkerScanner = async (signer: NDKNip46Signer) => {
     const ndk = nostrService.getNDK()
@@ -20,7 +43,6 @@ export function NostrConnect() {
 
     const user = await ndk.signer.user()
     const profile = await user.fetchProfile()
-    console.log(profile)
 
     setConnected(true)
   }
@@ -33,13 +55,16 @@ export function NostrConnect() {
     const profile = await user.fetchProfile()
     console.log(profile)
 
+    // The NostrConnectQRDialog handles storing the bunker URL
     setConnected(true)
   }
 
   const handleDisconnect = () => {
     const ndk = nostrService.getNDK()
     ndk.signer = new NDKPrivateKeySigner(process.env.NEXT_PUBLIC_DEFAULT_PRIVATE_KEY || '')
+    localStorage.removeItem(NOSTR_CONNECT_KEY)
     setConnected(false)
+    setError(null)
   }
 
   return (
