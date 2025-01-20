@@ -8,6 +8,7 @@ import { NDKEvent, NDKKind, NDKNip46Signer, NDKPrivateKeySigner } from '@nostr-d
 import { CopyIcon, Loader2 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useState } from 'react'
+import { NOSTR_CONNECT_KEY } from './NostrConnect'
 
 interface NostrConnectQRDialogProps {
   open: boolean
@@ -96,6 +97,9 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
         const nip46Signer = new NDKNip46Signer(ndk, bunkerUrl, localSigner)
         await nip46Signer.blockUntilReady()
         setListening(false)
+
+        localStorage.setItem('local_signer', localSigner.privateKey ?? '')
+        localStorage.setItem(NOSTR_CONNECT_KEY, bunkerUrl)
 
         onDone(nip46Signer)
         onOpenChange(false)

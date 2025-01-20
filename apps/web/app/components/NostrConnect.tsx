@@ -18,16 +18,25 @@ export function NostrConnect() {
 
   useEffect(() => {
     const storedUrl = localStorage.getItem(NOSTR_CONNECT_KEY)
+    const localSignerKey = localStorage.getItem('local_signer')
     if (storedUrl && storedUrl.startsWith('bunker://')) {
-      initializeStoredSigner(storedUrl)
+      console.log('storedUrl', storedUrl)
+      const localSigner = new NDKPrivateKeySigner(localSignerKey ?? '')
+      const url = new URL(storedUrl)
+
+      console.log('url', url)
+
+      initializeStoredSigner(url.toString(), localSigner)
     }
   }, [])
 
-  const initializeStoredSigner = async (url: string) => {
+  const initializeStoredSigner = async (url: string, localSigner: NDKPrivateKeySigner) => {
     try {
       const ndk = nostrService.getNDK()
-      const nip46signer = new NDKNip46Signer(ndk, url)
+      const nip46signer = new NDKNip46Signer(ndk, url, localSigner)
+      console.log('nip46signer', nip46signer)
       await nip46signer.blockUntilReady()
+      console.log('nip46signer ready')
       ndk.signer = nip46signer
       setConnected(true)
     } catch (error) {
@@ -61,7 +70,7 @@ export function NostrConnect() {
 
   const handleDisconnect = () => {
     const ndk = nostrService.getNDK()
-    ndk.signer = new NDKPrivateKeySigner(process.env.NEXT_PUBLIC_DEFAULT_PRIVATE_KEY || '')
+    ndk.signer = NDKPrivateKeySigner.generate()
     localStorage.removeItem(NOSTR_CONNECT_KEY)
     setConnected(false)
     setError(null)
@@ -77,7 +86,9 @@ export function NostrConnect() {
           {error && <div className="text-sm text-red-500">{error}</div>}
           <div className="flex gap-2">
             {connected ? (
-              <Button onClick={handleDisconnect}>Disconnect</Button>
+              <Button variant="destructive" onClick={handleDisconnect}>
+                Disconnect
+              </Button>
             ) : (
               <>
                 <Button onClick={() => setShowConnectBunkerScanner(true)}>Scan Bunker QR</Button>
