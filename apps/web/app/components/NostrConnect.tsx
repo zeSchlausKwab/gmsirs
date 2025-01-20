@@ -9,7 +9,7 @@ import { BunkerConnectDialog } from './BunkerConnectDialog'
 import { NostrConnectQRDialog } from './NostrConnectQRDialog'
 
 export const NOSTR_CONNECT_KEY = 'nostr_connect_url'
-
+export const NOSTR_LOCAL_SIGNER_KEY = 'local_signer'
 export function NostrConnect() {
   const [showConnectBunkerScanner, setShowConnectBunkerScanner] = useState(false)
   const [showConnectQR, setShowConnectQR] = useState(false)
@@ -41,7 +41,8 @@ export function NostrConnect() {
       setConnected(true)
     } catch (error) {
       console.error('Failed to initialize stored signer:', error)
-      // localStorage.removeItem(NOSTR_CONNECT_KEY)
+      localStorage.removeItem(NOSTR_CONNECT_KEY)
+      localStorage.removeItem(NOSTR_LOCAL_SIGNER_KEY)
       setError('Failed to reconnect to signer. Please try connecting again.')
     }
   }
@@ -72,6 +73,7 @@ export function NostrConnect() {
     const ndk = nostrService.getNDK()
     ndk.signer = NDKPrivateKeySigner.generate()
     localStorage.removeItem(NOSTR_CONNECT_KEY)
+    localStorage.removeItem(NOSTR_LOCAL_SIGNER_KEY)
     setConnected(false)
     setError(null)
   }

@@ -8,7 +8,7 @@ import { NDKEvent, NDKKind, NDKNip46Signer, NDKPrivateKeySigner } from '@nostr-d
 import { CopyIcon, Loader2 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useMemo, useState } from 'react'
-import { NOSTR_CONNECT_KEY } from './NostrConnect'
+import { NOSTR_CONNECT_KEY, NOSTR_LOCAL_SIGNER_KEY } from './NostrConnect'
 
 interface NostrConnectQRDialogProps {
   open: boolean
@@ -98,7 +98,7 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
         await nip46Signer.blockUntilReady()
         setListening(false)
 
-        localStorage.setItem('local_signer', localSigner.privateKey ?? '')
+        localStorage.setItem(NOSTR_LOCAL_SIGNER_KEY, localSigner.privateKey ?? '')
         localStorage.setItem(NOSTR_CONNECT_KEY, bunkerUrl)
 
         onDone(nip46Signer)
@@ -114,6 +114,42 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
     }
   }, [connectionUrl])
 
+  const copyToClipboard = (text: string) => {
+    // Try the modern Clipboard API first
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).catch((err) => {
+        console.warn('Clipboard API failed, falling back to textarea method:', err)
+        // Fall back to textarea method
+        const textarea = document.createElement('textarea')
+        textarea.value = text
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        try {
+          document.execCommand('copy')
+        } catch (err) {
+          console.error('Failed to copy text:', err)
+        }
+        document.body.removeChild(textarea)
+      })
+    } else {
+      // Use textarea method directly if Clipboard API is not available
+      const textarea = document.createElement('textarea')
+      textarea.value = text
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      try {
+        document.execCommand('copy')
+      } catch (err) {
+        console.error('Failed to copy text:', err)
+      }
+      document.body.removeChild(textarea)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -128,10 +164,17 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
             </div>
           ) : connectionUrl ? (
             <>
-              <QRCodeSVG value={connectionUrl} size={400} />
+              <a
+                href={connectionUrl}
+                className="block hover:opacity-90 transition-opacity"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <QRCodeSVG value={connectionUrl} size={400} />
+              </a>
               <div className="flex items-center gap-2">
                 <Input value={connectionUrl} readOnly onClick={(e) => e.currentTarget.select()} />
-                <Button variant="outline" size="icon" onClick={() => navigator.clipboard.writeText(connectionUrl)}>
+                <Button variant="outline" size="icon" onClick={() => copyToClipboard(connectionUrl)}>
                   <CopyIcon className="h-4 w-4" />
                 </Button>
                 {listening && <Loader2 className="h-4 w-4 animate-spin" />}
