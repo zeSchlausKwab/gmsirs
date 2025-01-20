@@ -4,12 +4,11 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { nostrService } from '@/services/ndk'
-import { NDKEvent, NDKKind, NDKNip46Signer, NDKPrivateKeySigner, NDKSubscription } from '@nostr-dev-kit/ndk'
+import { NDKEvent, NDKKind, NDKNip46Signer, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk'
 import { CopyIcon, Loader2 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { NOSTR_CONNECT_KEY } from './NostrConnect'
 interface NostrConnectQRDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -19,18 +18,20 @@ interface NostrConnectQRDialogProps {
 export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnectQRDialogProps) {
   const [localSigner, setLocalSigner] = useState<NDKPrivateKeySigner | null>(null)
   const [localPubkey, setLocalPubkey] = useState<string | null>(null)
-
-  const [loading, setLoading] = useState(false)
-
   const [tempSecret, setTempSecret] = useState<string | null>(null)
+
+  const [listening, setListening] = useState(false)
+  const [generatingConnectionUrl, setGeneratingConnectionUrl] = useState(false)
 
   // Initialize local signer once when dialog opens
   useEffect(() => {
     if (open && !localSigner) {
+      setGeneratingConnectionUrl(true)
       const signer = NDKPrivateKeySigner.generate()
       setLocalSigner(signer)
       signer.user().then((user) => {
         setLocalPubkey(user.pubkey)
+        setGeneratingConnectionUrl(false)
       })
     } else if (!open) {
       setLocalSigner(null)
@@ -74,7 +75,7 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
   }
 
   useEffect(() => {
-    console.log('useEffect', connectionUrl)
+    setListening(true)
     const ndk = nostrService.getNDK()
     const ackSub = ndk.subscribe({
       kinds: [NDKKind.NostrConnect],
@@ -91,12 +92,10 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
       console.log('event author', event.pubkey)
 
       if (response.result && response.result === tempSecret) {
-        console.log('Valid secret in response')
         const bunkerUrl = constructBunkerUrl(event)
-        console.log('bunkerUrl', bunkerUrl)
         const nip46Signer = new NDKNip46Signer(ndk, bunkerUrl, localSigner)
         await nip46Signer.blockUntilReady()
-        console.log('remoteSigner', nip46Signer)
+        setListening(false)
 
         onDone(nip46Signer)
         onOpenChange(false)
@@ -116,13 +115,12 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Scan with NIP-46 App</DialogTitle>
-          <DialogDescription>{localPubkey ?? JSON.stringify(localPubkey)}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center gap-4">
-          {loading ? (
+          {generatingConnectionUrl ? (
             <div className="flex flex-col items-center gap-2 py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <p className="text-sm text-muted-foreground">Waiting for connection...</p>
+              <p className="text-sm text-muted-foreground">Generating connection...</p>
             </div>
           ) : connectionUrl ? (
             <>
@@ -132,12 +130,13 @@ export function NostrConnectQRDialog({ open, onOpenChange, onDone }: NostrConnec
                 <Button variant="outline" size="icon" onClick={() => navigator.clipboard.writeText(connectionUrl)}>
                   <CopyIcon className="h-4 w-4" />
                 </Button>
+                {listening && <Loader2 className="h-4 w-4 animate-spin" />}
               </div>
             </>
           ) : (
             <div className="flex flex-col items-center gap-2 py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <p className="text-sm text-muted-foreground">Generating connection...</p>
+              <p className="text-sm text-muted-foreground">Waiting for connection...</p>
             </div>
           )}
           {/* {error && <div className="text-sm text-red-500">{error}</div>} */}
